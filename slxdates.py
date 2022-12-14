@@ -1,19 +1,28 @@
+import os
 import openpyxl
 from datetime import date
 
 TODAY = date.today()
 
+def get_files():
+    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+    # Find file with extension
+    fileExt = r".xlsx"
+    return [os.path.join(CURRENT_DIR, _) for _ in os.listdir(CURRENT_DIR) if _.endswith(fileExt)]
+
 def load_xlsx_file_and_find_dates():
+    files = get_files()
     result = []
-    dataframe = openpyxl.load_workbook("dates.xlsx")
-    result, dat_active = extract_dates(result, dataframe)
-    if len(result)<1:
-        result.append("No dates found in the PAST")
+    for file in files:
+        dataframe = openpyxl.load_workbook(file)
+        result, dat_active = extract_dates_for_each_file(result, dataframe)
+        if len(result)<1:
+            result.append("No dates found in the PAST")
     edit_file(dat_active, result)
-    dataframe.save("dates.xlsx")
+    dataframe.save(file)
     dataframe.close()
     
-def extract_dates(result, dataframe):
+def extract_dates_for_each_file(result, dataframe):
     dat_active = dataframe.active
     for row in range(0, dat_active.max_row):
         for col in dat_active.iter_cols(1, dat_active.max_column):
