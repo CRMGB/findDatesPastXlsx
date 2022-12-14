@@ -6,5 +6,9 @@ Script required by my friend Tortu just because he forgets when there is a date 
 - Output the dates in the past in the A1 cell of each file checked.
 
 ###INSTALLATION (We assume you've got python 3.7 or higher):
+  - Check whether you've got pip installed: pip help
+  - If there is no pip in your system (For Windows):
+      - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+      - python get-pip.py
   - pip install -r requirements.txt
   - python slxdates.py
