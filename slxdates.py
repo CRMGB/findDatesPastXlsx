@@ -1,29 +1,38 @@
 import os
 import openpyxl
+from typing import List
 from datetime import date
 
 TODAY = date.today()
 
-def get_files():
-    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+def get_files() -> List[str]:
+    """ Get the files .xlsx from current directory."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
     # Find file with extension
     fileExt = r".xlsx"
-    return [os.path.join(CURRENT_DIR, _) for _ in os.listdir(CURRENT_DIR) if _.endswith(fileExt)]
+    return [
+        os.path.join(current_dir, _) for _ in os.listdir(current_dir) if _.endswith(fileExt)
+    ]
 
-def load_xlsx_file_and_find_dates():
+def load_xlsx_file_and_find_dates() -> None:
+    """ Loop over all files from current directory
+    and call method find_dates_in_past() to return the result."""
     files = get_files()
-    result = []
     for file in files:
+        print(f"Loading file: {file}")
         dataframe = openpyxl.load_workbook(file)
-        result, dat_active = extract_dates_for_each_file(result, dataframe)
+        dat_active = dataframe.active
+        result = find_dates_in_past(dat_active)
         if len(result)<1:
             result.append("No dates found in the PAST")
-    edit_file(dat_active, result)
-    dataframe.save(file)
+        edit_file(dat_active, result)
+        dataframe.save(file)
     dataframe.close()
     
-def extract_dates_for_each_file(result, dataframe):
-    dat_active = dataframe.active
+def find_dates_in_past(dat_active) -> List[str]:
+    """ Loop over all rows/columns to find the actual dates in the past
+    and return the result."""    
+    result = [] # type: List[str]
     for row in range(0, dat_active.max_row):
         for col in dat_active.iter_cols(1, dat_active.max_column):
             if col[row].value == None or type(col[row].value) == str:
@@ -32,14 +41,15 @@ def extract_dates_for_each_file(result, dataframe):
                 result.append(
                     f"The date from {col[row].value.strftime('%d/%m/%Y')} is in the PAST"
                 )
-    return result, dat_active
+    return result
 
-def edit_file(dat_active, result):    
+def edit_file(dat_active, result) -> None:
+    """ Submmit the result to the cell A1."""       
     # Get european format
     today = TODAY.strftime('%d/%m/%Y')
-    print("Today is: ", today)
+    print(f"Today is: {today}")
     res = '. '.join([str(elem) for elem in result])
-    print("RESULT---> ", res)
+    print(f"RESULT---> {res}")
     # Sheet is the SheetName where the data has to be entered
     dat_active.cell(row=1, column=1).value = res
 
